@@ -43,4 +43,46 @@ CHIP ALU {
 
     PARTS:
    // Put you code here:
+
+   // Select whether to set x and y to zero.
+
+   Mux16 (a=x, b=false, sel=zx, out=x1);
+   Mux16 (a=y, b=false, sel=zy, out=y1);
+
+   // Negate both x and y for later use
+
+   Not16 (in=x1, out=notx1);
+   Not16 (in=y1, out=noty1);
+
+   // Select whether to bitwise not x and y
+
+   Mux16 (a=x1, b=notx1, sel=nx, out=x2);
+   Mux16 (a=y1, b=noty1, sel=ny, out=y2);
+
+   // Find ADD16 and AND16 for later use
+
+   Add16 (a=x2, b=y2, out=xplusy);
+   And16 (a=x2, b=y2, out=xandy);
+
+   // Select whether to compute ADD16 or AND16
+
+   Mux16 (a=xandy, b=xplusy, sel=f, out=out1);
+
+   // Negate the output out1 for later use
+
+   Not16 (in=out1, out=notout1);
+
+   // Select whether to negate the output
+   // if out<0, MSB will be 1, so can set that here
+
+   Mux16 (a=out1, b=notout1, sel=no, out[15]=ng, out[0..7]=part1, out[8..15]=part2, out=out);
+
+   // if all of out = 0, then Or8Way (out[0..7]) or Or8Way (out[8..15]) is false ... 
+
+   Or8Way (in=part1, out=or1);
+   Or8Way (in=part2, out=or2);
+
+   Or (a=or1, b=or2, out=nonzero);
+
+   Not(in=nonzero, out=zr);
 }

@@ -13,59 +13,49 @@
 
 // Put your code here.
 
-(RESTART)
-@SCREEN
-D = A
-@0
-M = D	//PUT SCREEN START LOCATION IN RAM0
+(LOOP)
+    @SCREEN
+    D=A
+    @addr
+    M=D
 
-///////////////////////////
-(KBDCHECK)
+    @KBD
+    D=M
 
-@KBD
-D = M
-@BLACK
-D ; JGT	//JUMP IF ANY KBD KEYS ARE PRESSED SINCE M will be > 0
-@WHITE
-D ; JEQ	//ELSE JUMP TO WHITEN
+    @UP
+    D;JEQ // no key, go to UP
 
-@KBDCHECK
-0 ; JMP
+    @DOWN
+    0;JEQ // key, go to DOWN
 
-///////////////////////////
-(BLACK)
-@1
-M = -1	//WHAT TO FILL SCREEN WITH
-@CHANGE
-0 ; JMP
+(DRAW)
+    @addr
+    D=M
+    @KBD
+    D=D-A
+    @LOOP
+    D;JEQ
 
-(WHITE)
-@1
-M = 0	//WHAT TO FILL SCREEN WITH
-@CHANGE
-0 ; JMP
+    @colour
+    D=M
+    @addr
+    A=M
+    M=D
 
-//////////////////////////
-(CHANGE)
-@1	//CHECK WHAT TO FILL SCREEN WITH
-D = M	//D CONTAINS BLACK OR WHITE
+    @addr
+    M=M+1
 
-@0
-A = M	//GET ADRESS OF SCREEN PIXEL TO FILL
-M = D	//FILL IT
+    @DRAW
+    0;JMP
 
-@0
-D = M + 1	//INC TO NEXT PIXEL
-@KBD
-D = A - D	//KBD-SCREEN=A
+(UP)
+    @colour
+    M=0
+    @DRAW
+    0;JMP
 
-@0
-M = M+1	//INC TO NEXT PIXEL
-A = M
-
-@CHANGE
-D ; JGT	//IF A=0 EXIT AS THE WHOLE SCREEN IS BLACK
-/////////////////////////
-
-@RESTART
-0 ; JMP
+(DOWN)
+   @colour
+   M=-1
+   @DRAW
+   0;JMP

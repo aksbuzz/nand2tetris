@@ -40,4 +40,38 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+
+    Not (in=instruction[15], out=notinstruction);
+    Mux16 (a=feedbackALU, b=instruction, sel=notinstruction, out=outMUX);
+
+    Or (a=notinstruction, b=instruction[5], out=loadA);
+    ARegister (in=outMUX, load=loadA, out=outAregister, out[0..14]=addressM);
+
+    And (a=instruction[15], b=instruction[12], out=loadAorM);
+    Mux16 (a=outAregister, b=inM, sel=loadAorM, out=outMUXX);
+
+    ALU (x=outDregister, y=outMUXX, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=feedbackALU, out=outM, zr=zr, ng=ng);
+
+    And (a=instruction[15],b=instruction[4],out=loadD);
+    DRegister (in=feedbackALU, load=loadD, out=outDregister);
+
+    And(a=instruction[15],b=instruction[3],out=writeM);
+
+    Not (in=ng, out=positive);
+    Not (in=zr, out=notzero);
+    And (a=instruction[15],b=instruction[0],out=JGT);
+    And (a=positive, b=notzero, out=positiveandnotzero);
+    And (a=JGT, b=positiveandnotzero, out=load1);
+	
+	And(a=instruction[15],b=instruction[1],out=JEQ);
+    And (a=JEQ, b=zr, out=load2);
+
+	And (a=instruction[15],b=instruction[2],out=JLT);
+    And (a=JLT, b=ng, out=load3);
+
+    Or (a=load1, b=load2, out=loadTrue);
+    Or (a=loadTrue, b=load3, out=load);
+
+    PC (in=outAregister, load=load, inc=true, reset=reset, out[0..14]=pc);
+
 }
